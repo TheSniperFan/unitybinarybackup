@@ -1,4 +1,4 @@
-# unitybinarybackup #
+# Unity Binary Backup #
 This tool is being developed to provide an easy to use tool that keeps unwanted files from your Unity projects out of your git repositories.
 The tool scans your root gitignore file to determine which files are excluded from version control and extracts them.
 
