@@ -18,7 +18,7 @@ namespace unitybinarybackup {
             Console.WriteLine("Checking whether we're running from a valid directory...\n");
             
             bool result = ValidateUnityProject() && ValidateGitGitignore();
-            Console.WriteLine(result ? "\nProject seems to be valid." : "\nThere were errors!");
+            Console.WriteLine(result ? "\nWorking directory seems to be valid.\n" : "\nThere were errors!\n");
             
             return result;
         }
