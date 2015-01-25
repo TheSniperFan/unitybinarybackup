@@ -1,16 +1,28 @@
 ﻿using System;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace unitybinarybackup {
     class Program {
+        /// <summary>
+        /// Do we run in simulation mode?
+        /// </summary>
         private static bool simulate = false;
+        /// <summary>
+        /// Do we want to compress the data after backup up?
+        /// </summary>
         private static bool compress = false;
+        /// <summary>
+        /// The name of the backup
+        /// </summary>
         private static string backupName;
 
         static void Main(string[] args) {
             backupName = DateTime.Now.ToString("dd-MM-yy_HH-mm");
 
             if (ParseOptions(args)) {
+                CreateBackupDirectory();
+
                 if (UnityProjectTool.ValidateProject()) {
                     bool result = false;
                     if (simulate) {
@@ -42,6 +54,23 @@ namespace unitybinarybackup {
                 Console.WriteLine("unitybinarybackup.exe -Bnc A_Backup");
             }
             Console.ReadKey();
+        }
+
+        /// <summary>
+        /// Creates a directory for the backup. Checks whether one already exits and renames the current backup accordingly.
+        /// </summary>
+        private static void CreateBackupDirectory() {
+            if (!Directory.Exists("UBB")) {
+                Directory.CreateDirectory("UBB");
+            }
+
+            string[] directories = Directory.GetDirectories("UBB", backupName + "*", SearchOption.TopDirectoryOnly);
+
+            if (directories.Length > 0) {
+                Console.WriteLine(string.Format("Backup(s) with name '{0}' already exists! New backup will be named '{1}'!\n", backupName, backupName += "_(" + (directories.Length + 1) + ")"));
+            }
+
+            Directory.CreateDirectory("UBB\\" + backupName);
         }
 
         /// <summary>
