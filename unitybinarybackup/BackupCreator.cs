@@ -227,10 +227,14 @@ namespace unitybinarybackup {
 
                 // Extract valid filetype entries (*.something)
                 // Metafiles are ignored, since they will be backed up regardless
+                // Only one block is scanned. A newline, new comment or the end of the file indicates the end of this block
                 while (!reader.EndOfStream) {
                     string currentline = reader.ReadLine();
                     if (Regex.IsMatch(currentline, @"^\*{1}.\w+$")) {
                         typeList.Add(currentline);
+                    }
+                    else if (Regex.IsMatch(currentline, @"^(\n|#)?\w*$")) {
+                        break;
                     }
                 }
             }
