@@ -12,14 +12,15 @@ namespace unitybinarybackup {
 
             if (ParseOptions(args)) {
                 if (UnityProjectTool.ValidateProject()) {
-                    BackupCreator bc = new BackupCreator();
                     bool result = false;
                     if (simulate) {
-                        Console.WriteLine("Running in simulation mode!");
+                        Console.WriteLine("Running in simulation mode!\n");
+                        BackupCreator bc = new BackupCreator();
                         result = bc.Simulate();
                     }
                     else {
                         Console.WriteLine(string.Format("Running in backup mode with the following options:\nCompression: {0}\nBackup name: {1}\n", compress, backupName));
+                        BackupCreator bc = new BackupCreator();
                         result = bc.Backup(backupName);
                     }
 

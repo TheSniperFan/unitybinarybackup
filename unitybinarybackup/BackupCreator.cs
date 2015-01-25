@@ -10,6 +10,12 @@ namespace unitybinarybackup {
         /// </summary>
         private List<string> typeList = new List<string>();
 
+        private List<string> fileList = new List<string>();
+        private HashSet<string> directoryList = new HashSet<string>();
+        private List<string> metaFileList = new List<string>();
+
+        private long backupSize = 0;
+
         public BackupCreator() {
             GetFileTypeList();
         }
@@ -19,7 +25,14 @@ namespace unitybinarybackup {
         /// </summary>
         /// <returns>Success</returns>
         public bool Simulate() {
-            return false;
+            BuildFileList();
+            BuildDirectoryList();
+            BuildMetaFileList();
+
+            Console.WriteLine(string.Format("\n\n\nSummary:\n{0} file(s), {1} directorie(s) and {2} metafile(s) were selected for backing up.\nRaw backup size: {3:0.00} MB",
+                fileList.Count, directoryList.Count, metaFileList.Count, backupSize / 1048576.0f));
+
+            return true;
         }
 
         /// <summary>
@@ -31,12 +44,77 @@ namespace unitybinarybackup {
             return false;
         }
 
+        private bool BuildFileList() {
+            string[] foundFiles;
+            foreach (string type in typeList) {
+                foundFiles = Directory.GetFiles("Assets", type, SearchOption.AllDirectories);
+                foreach (string file in foundFiles) {
+                    fileList.Add(file);
+                    backupSize += (new FileInfo(file).Length);
+                }
+            }
+
+            return fileList.Count > 0;
+        }
+
+        private void BuildDirectoryList() {
+            string absoluteAssetPath = Path.GetFullPath("Assets");
+            Uri absoluteAssetPathUri = new Uri(absoluteAssetPath, UriKind.Absolute);
+            
+            string parent;
+            
+            foreach (string file in fileList) {
+                parent = file;
+                do {
+                    parent = Directory.GetParent(parent).ToString();
+                    if (parent != absoluteAssetPath) {
+                        Uri parentUri = new Uri(parent, UriKind.Absolute);
+                        directoryList.Add(Uri.UnescapeDataString(absoluteAssetPathUri.MakeRelativeUri(parentUri).ToString()));
+                    }
+                } while (parent != absoluteAssetPath);
+            }
+        }
+
+        private bool BuildMetaFileList() {
+            string metafile = "";
+            foreach (string file in fileList) {
+                if (GetMetaFile(file, ref metafile)) {
+                    metaFileList.Add(metafile);
+                }
+                else {
+                    return false;
+                }
+            }
+            foreach (string dir in directoryList) {
+                if (GetMetaFile(dir, ref metafile)) {
+                    metaFileList.Add(metafile);
+                }
+                else {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool GetMetaFile(string file, ref string metafile) {
+            if (File.Exists(file + ".meta")) {
+                metafile = file + ".meta";
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Prints all the filetypes we want to back up
         /// </summary>
         private void PrintFileTypeList() {
             foreach (string type in typeList)
-                Console.WriteLine(type);
+                Console.Write(type.Split('.')[1] + " ");
+
+            Console.WriteLine("\n");
         }
 
         /// <summary>
@@ -53,7 +131,7 @@ namespace unitybinarybackup {
                 while (!reader.EndOfStream) {
                     string currentline = reader.ReadLine();
                     if (Regex.IsMatch(currentline, @"^\*{1}.\w+$")) {
-                        typeList.Add(currentline.Split('.')[1]);
+                        typeList.Add(currentline);
                     }
                 }
             }
@@ -61,7 +139,7 @@ namespace unitybinarybackup {
                 Console.WriteLine("Nothing to do!");
             }
             else {
-                Console.WriteLine("The following filetypes will be backed up:");
+                Console.Write("The following filetypes will be backed up: ");
                 PrintFileTypeList();
             }
         }
