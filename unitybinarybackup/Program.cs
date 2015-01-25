@@ -21,7 +21,9 @@ namespace unitybinarybackup {
             backupName = DateTime.Now.ToString("dd-MM-yy_HH-mm");
 
             if (ParseOptions(args)) {
-                CreateBackupDirectory();
+                if (!simulate) {
+                    CreateBackupDirectory();
+                }
 
                 if (UnityProjectTool.ValidateProject()) {
                     bool result = false;

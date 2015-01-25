@@ -37,6 +37,17 @@ namespace unitybinarybackup {
         /// </summary>
         /// <returns>Success</returns>
         public bool Simulate() {
+            return Backup(null, false, false);
+        }
+
+        /// <summary>
+        /// Creates a backup.
+        /// </summary>
+        /// <param name="backupName">Name of the backup</param>
+        /// <param name="compression">Compress the backup</param>
+        /// <param name="writeBackup">Should the backup be written?</param>
+        /// <returns>Success</returns>
+        public bool Backup(string backupName, bool compression = false, bool writeBackup = true) {
             if (!BuildFileList()) {
                 Console.WriteLine("No files found! Aborting...");
                 return false;
@@ -52,16 +63,11 @@ namespace unitybinarybackup {
             Console.WriteLine(string.Format("\n\n\nSummary:\n{0} file(s), {1} directorie(s) and {2} metafile(s) were selected for backing up.\nRaw backup size: {3:0.00} MB",
                 fileList.Count, directoryList.Count, metaFileList.Count, backupSize / 1048576.0f));
 
-            return true;
+
+            return false;
         }
 
-        /// <summary>
-        /// Creates a backup.
-        /// </summary>
-        /// <param name="backupName">Name of the backup</param>
-        /// <returns>Success</returns>
-        public bool Backup(string backupName) {
-            return false;
+        private void CompressBackup() {
         }
 
         /// <summary>
