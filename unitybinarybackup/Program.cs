@@ -60,7 +60,6 @@ namespace unitybinarybackup {
                 Console.WriteLine("\nExample:");
                 Console.WriteLine("unitybinarybackup.exe -Bnc A_Backup");
             }
-            Console.ReadKey();
         }
 
         /// <summary>
