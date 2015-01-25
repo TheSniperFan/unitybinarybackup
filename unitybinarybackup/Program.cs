@@ -22,7 +22,7 @@ namespace unitybinarybackup {
 
             if (ParseOptions(args)) {
                 if (!simulate) {
-                    CreateBackupDirectory();
+                    CheckBackupName();
                 }
 
                 if (UnityProjectTool.ValidateProject()) {
@@ -35,10 +35,15 @@ namespace unitybinarybackup {
                     else {
                         Console.WriteLine(string.Format("Running in backup mode with the following options:\nCompression: {0}\nBackup name: {1}\n", compress, backupName));
                         BackupCreator bc = new BackupCreator();
-                        result = bc.Backup(backupName);
+                        result = bc.Backup(backupName, compress);
                     }
 
-                    Console.WriteLine("\nFinished!");
+                    if (result) {
+                        Console.WriteLine("\nFinished without errors!");
+                    }
+                    else {
+                        Console.WriteLine("Backup cancelled due to errors!");
+                    }
                 }
                 else {
                     Console.WriteLine("Aborting, due to errors during the validation phase!");
@@ -59,20 +64,31 @@ namespace unitybinarybackup {
         }
 
         /// <summary>
-        /// Creates a directory for the backup. Checks whether one already exits and renames the current backup accordingly.
+        /// Checks whether the backup name is already in use and renames it accordingly.
         /// </summary>
-        private static void CreateBackupDirectory() {
+        private static void CheckBackupName() {
             if (!Directory.Exists("UBB")) {
                 Directory.CreateDirectory("UBB");
             }
 
-            string[] directories = Directory.GetDirectories("UBB", backupName + "*", SearchOption.TopDirectoryOnly);
+            // If we want compression, we check if zip files are already existing, otherwise we check for folders.
+            if (compress) {
+                string[] files = Directory.GetFiles("UBB", backupName + "*.zip", SearchOption.TopDirectoryOnly);
 
-            if (directories.Length > 0) {
-                Console.WriteLine(string.Format("Backup(s) with name '{0}' already exists! New backup will be named '{1}'!\n", backupName, backupName += "_(" + (directories.Length + 1) + ")"));
+                if (files.Length > 0) {
+                    Console.WriteLine(string.Format("Backup(s) with name '{0}' already exists! New backup will be named '{1}'!\n", backupName, backupName += "_(" + (files.Length + 1) + ")"));
+                }
+            }
+            else {
+                string[] directories = Directory.GetDirectories("UBB", backupName + "*", SearchOption.TopDirectoryOnly);
+
+
+                if (directories.Length > 0) {
+                    Console.WriteLine(string.Format("Backup(s) with name '{0}' already exists! New backup will be named '{1}'!\n", backupName, backupName += "_(" + (directories.Length + 1) + ")"));
+                }
             }
 
-            Directory.CreateDirectory("UBB\\" + backupName);
+            Directory.CreateDirectory("UBB\\");
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -60,14 +61,57 @@ namespace unitybinarybackup {
                 return false;
             }
 
-            Console.WriteLine(string.Format("\n\n\nSummary:\n{0} file(s), {1} directorie(s) and {2} metafile(s) were selected for backing up.\nRaw backup size: {3:0.00} MB",
+            Console.WriteLine(string.Format("\n\n\nSummary:\n{0} file(s), {1} directorie(s) and {2} metafile(s) were selected for backing up.\nRaw backup size: {3:0.00} MB\n",
                 fileList.Count, directoryList.Count, metaFileList.Count, backupSize / 1048576.0f));
 
+            // Write to disk, if in write mode
+            if (writeBackup) {
+                Console.WriteLine("Writing backup...\n");
+                string backupPrefix;
 
-            return false;
-        }
+                // If we want compression, we only write to a temprorary folder
+                if (compression) {
+                    backupPrefix = "tmp\\";
+                }
+                else {
+                    backupPrefix = "UBB\\" + backupName + "\\";
+                }
 
-        private void CompressBackup() {
+                Console.Write("Creating root directory...");
+                Directory.CreateDirectory(backupPrefix);
+                Console.WriteLine("DONE");
+
+                Console.Write("Creating target directories...");
+                foreach (string dir in directoryList) {
+                    Directory.CreateDirectory(backupPrefix + dir.Remove(0, 7));
+                }
+                Console.WriteLine("DONE");
+
+                Console.Write("Copying files...");
+                foreach (string file in fileList) {
+                    File.Copy(file, backupPrefix + file.Remove(0, 7));
+                }
+                Console.WriteLine("DONE");
+
+                Console.Write("Copying metafiles...");
+                foreach (string file in metaFileList) {
+                    File.Copy(file, backupPrefix + file.Remove(0, 7));
+                }
+                Console.WriteLine("DONE");
+
+                Console.WriteLine("\nFinished copying!");
+
+                // Compress to a zip archive and delete the temporary folder, if compression is enabled
+                if (compression) {
+                    Console.Write("Compressing...");
+                    ZipFile.CreateFromDirectory(backupPrefix, "UBB\\" + backupName + ".zip", CompressionLevel.Optimal, false);
+                    Console.WriteLine("DONE");
+
+                    Directory.Delete(backupPrefix, true);
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
